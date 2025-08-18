@@ -1,101 +1,69 @@
-# 🩺 Pima Indians Diabetes Prediction --- End-to-End ML Project
+# 🩺 Pima Indians Diabetes Prediction — End-to-End ML Project
 
-A complete **machine learning pipeline** to predict diabetes risk using
-the **Pima Indians Diabetes Dataset**.\
-This notebook covers **data cleaning, EDA, feature engineering, model
-building, evaluation, interpretation, and deployment artifacts**.
+A compact, production-minded pipeline to predict diabetes risk from routine clinical measurements (Pima Indians dataset).  
+Covers **data cleaning → EDA → feature engineering → modeling → calibration & cost-aware threshold → interpretation → deployable artifacts**.
 
-------------------------------------------------------------------------
+---
 
 ## 🚀 Main Steps
 
-**Data Cleaning** - Replace impossible zeros in medical columns
-(`Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`) with
-`NaN`. - Impute missing values using **median** (robust to outliers). -
-Check for and remove duplicates.
+**Data Cleaning**
+- Replace impossible zeros in medical columns (`Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`) with `NaN`.
+- Median imputation (robust to outliers). Remove duplicates.
 
-**Feature Engineering** - Create **Age groups** and **BMI categories**.\
-- Add interaction features (`Age×BMI`, `Glucose×BMI`,
-`Pregnancies/Age`).\
-- Ensure transformations are inside pipelines (no leakage).
+**Feature Engineering**
+- Age groups, BMI categories.
+- Interactions: `Age×BMI`, `Glucose×BMI`, `Pregnancies/Age`.
+- All transformations inside a **leakage-safe Pipeline**.
 
-**EDA & Visualization** - **Class distribution:** \~65% non-diabetic
-vs. 35% diabetic.\
-- **Correlation heatmap:** Glucose is the most correlated with
-diabetes.\
-- **Boxplots/Histograms:** Diabetic patients tend to have **higher
-Glucose, BMI, Age**.\
-- **Grouped insights:** Diabetes rate increases sharply after 40 and
-with obesity.\
-- Interactive **Plotly charts** (Glucose vs BMI with outcome clusters).
+**EDA & Visualization**
+- Class imbalance: ~65% non-diabetic vs ~35% diabetic.
+- Correlation: **Glucose** strongest with outcome; diabetics tend to have higher **Glucose/BMI/Age**.
+- Plotly: Glucose vs BMI clusters by outcome.
 
-**Modeling** - Baselines: Dummy classifier (most frequent).\
-- Models: **Logistic Regression, Random Forest, XGBoost**.\
-- **SMOTE** for handling class imbalance.\
-- **5-fold Cross-validation** with multiple metrics (Accuracy,
-Precision, Recall, F1, ROC-AUC).
+**Modeling**
+- Baseline: Dummy.  
+- Models: **Logistic Regression, Random Forest** (XGBoost if available).  
+- **Imbalance**: SMOTE and/or class weights.  
+- **5-fold Stratified CV** with Accuracy, Precision, Recall, F1, ROC-AUC.
 
-**Threshold Tuning** - Precision--Recall curves for best model.\
-- Lowering threshold (0.5 → 0.3) increases **recall** (catching more
-diabetics) but raises false positives.
+**Threshold & Calibration (Pro touch)**
+- Tune threshold on validation (maximize **F1** for screening).  
+- **Isotonic calibration** + **Reliability plot** for trustworthy probabilities.  
+- **Cost Curve** to pick an **operating threshold** minimizing expected cost (typically `Cost_FN > Cost_FP`).
 
-**Model Interpretation** - **Permutation importance:** Top drivers =
-Glucose, BMI, Age, Pregnancies.\
-- **Error analysis:** False negatives cluster in moderate Glucose/BMI
-range.\
-- **Learning curves:** indicate model stabilizes with more data.
+**Interpretation**
+- **Permutation importance**: key drivers typically **Glucose, BMI, Age, Pregnancies**.
+- Learning curves for data sufficiency.
 
-**Deployment Artifacts** - Save final tuned pipeline (`joblib`) +
-optimal threshold for production scoring.
+**Deployment Artifacts**
+- Export single `joblib` bundle: pipeline + features + thresholds (validation & operating).
 
-------------------------------------------------------------------------
+---
 
-## 📈 Results Summary
+## 📈 Results Summary *(replace with your run)*
 
-  --------------------------------------------------------------------------------
-  Model                  Accuracy    Precision    Recall     F1         ROC-AUC
-  ---------------------- ----------- ------------ ---------- ---------- ----------
-  Logistic Regression    **0.72**    0.59         **0.69**   **0.63**   0.81
+| Model               | Accuracy | Precision | Recall | F1   | ROC-AUC |
+|---------------------|----------|-----------|--------|------|---------|
+| Logistic Regression | **0.72** | 0.59      | **0.69** | **0.63** | 0.81    |
+| Random Forest       | 0.71     | 0.58      | 0.59   | 0.59 | **0.82** |
+| XGBoost             | 0.73     | 0.61      | 0.63   | 0.62 | 0.81    |
 
-  Random Forest          0.71        0.58         0.59       0.59       **0.82**
+- **Best for screening**: Logistic Regression (higher Recall/F1 at tuned thresholds).  
+- **Operating threshold (cost-optimal)**: `<best_thr_cost>` with `Cost_FP=1, Cost_FN=7`.  
+- **Test @ operating threshold**: `TP=<TP>, FP=<FP>, FN=<FN>, TN=<TN> | Precision=<P>, Recall=<R>, F1=<F1>, ROC-AUC=<AUC> | Expected cost=<COST>`.
 
-  XGBoost                0.73        0.61         0.63       0.62       0.81
-  --------------------------------------------------------------------------------
+---
 
--   **Best for screening:** Logistic Regression (high recall & F1 at
-    tuned thresholds).\
--   **Strong discrimination:** All models ROC-AUC \> 0.80.\
--   **Tuned RF/XGB** edge slightly in AUC but at higher cost in
-    complexity/runtime.
+## 🔧 Quickstart
+1. Run the notebook end-to-end (keeps all steps inside a single Pipeline — no leakage).  
+2. Artifacts saved to `./artifacts/pima_best_pipeline.joblib` (pipeline, features, thresholds).  
+3. Optional batch scoring: `python inference.py input.csv predictions.csv`  
+   - CSV columns: `Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age`.
 
-------------------------------------------------------------------------
-
-## 💡 Recommendations
-
--   **Clinical screening:** Use Logistic Regression with **lowered
-    threshold** to minimize missed diabetics.\
--   **High-risk patients:** Age ≥ 40 with high BMI & Glucose →
-    prioritize for early testing.\
--   **Model maintenance:** Retrain quarterly, monitor drift, add
-    lifestyle/family history features when available.\
--   **Deployment:** Integrate into clinics via a lightweight scoring API
-    (saved `joblib` pipeline).
-
-------------------------------------------------------------------------
-
-## 💵 Business Impact Scenario
-
--   Screening **1000 patients/month** with dataset prevalence (35%).\
--   Lowering threshold → more early detections → fewer complications.\
--   Assuming \~30% reduction in late-stage complications → **significant
-    cost savings** despite extra follow-ups.\
--   Full cost--benefit table included in the notebook.
-
-------------------------------------------------------------------------
+---
 
 ## 📦 Artifacts
+- `artifacts/pima_best_pipeline.joblib`  
+  Includes preprocessing, feature engineering, SMOTE, classifier, **validation threshold**, **operating threshold**, feature list, and CV summary.
 
--   **Final Pipeline:** `artifacts/pima_best_pipeline.joblib`\
--   Includes: preprocessing steps, feature engineering, SMOTE,
-    classifier, and optimal threshold.\
--   Ready for **real-world deployment** in clinics or healthcare apps.
