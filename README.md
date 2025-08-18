@@ -41,28 +41,6 @@ Covers **data cleaning → EDA → feature engineering → modeling → calibrat
 
 ---
 
-## 📈 Results Summary *(replace with your run)*
-
-| Model               | Accuracy | Precision | Recall | F1   | ROC-AUC |
-|---------------------|----------|-----------|--------|------|---------|
-| Logistic Regression | **0.72** | 0.59      | **0.69** | **0.63** | 0.81    |
-| Random Forest       | 0.71     | 0.58      | 0.59   | 0.59 | **0.82** |
-| XGBoost             | 0.73     | 0.61      | 0.63   | 0.62 | 0.81    |
-
-- **Best for screening**: Logistic Regression (higher Recall/F1 at tuned thresholds).  
-- **Operating threshold (cost-optimal)**: `<best_thr_cost>` with `Cost_FP=1, Cost_FN=7`.  
-- **Test @ operating threshold**: `TP=<TP>, FP=<FP>, FN=<FN>, TN=<TN> | Precision=<P>, Recall=<R>, F1=<F1>, ROC-AUC=<AUC> | Expected cost=<COST>`.
-
----
-
-## 🔧 Quickstart
-1. Run the notebook end-to-end (keeps all steps inside a single Pipeline — no leakage).  
-2. Artifacts saved to `./artifacts/pima_best_pipeline.joblib` (pipeline, features, thresholds).  
-3. Optional batch scoring: `python inference.py input.csv predictions.csv`  
-   - CSV columns: `Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age`.
-
----
-
 ## 📦 Artifacts
 - `artifacts/pima_best_pipeline.joblib`  
   Includes preprocessing, feature engineering, SMOTE, classifier, **validation threshold**, **operating threshold**, feature list, and CV summary.
